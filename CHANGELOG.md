@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.1
+
+* The plugin has an icon: Pip at rest on its asteroid in the night sky, the Earth in the distance, square at 512 px.
+
 ## 0.1.0
 
 * Violet night and lavender dawn colors for the whole Claude desktop app.

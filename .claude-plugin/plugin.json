@@ -1,7 +1,9 @@
 {
   "name": "voxel-drift",
-  "version": "0.1.0",
-  "description": "Voxel Drift for Claude Desktop: violet night and lavender dawn, over Pip, a voxel creature turning on its asteroid among drifting stars.",
-  "author": { "name": "stillgbx" },
+  "version": "0.1.1",
+  "description": "Voxel Drift for Claude Desktop: violet night and lavender dawn, over 3D voxel scenes where Pip, a small creature, follows Claude among the planets.",
+  "author": {
+    "name": "stillgbx"
+  },
   "license": "MIT"
 }

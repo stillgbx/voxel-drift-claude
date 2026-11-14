@@ -86,6 +86,12 @@ node --import ./scripts/ts-resolve.mjs scripts/preview.ts
 This writes each scene to `Preview/<variant>.svg`, `Preview/index.html` (every variant in each of Pip's moods, in dark and light) and `Preview/frames.html` (each of Pip's frames, still), and prints each scene's size.
 
 ```bash
+node --import ./scripts/ts-resolve.mjs scripts/icon.ts
+```
+
+This writes the plugin's icon as `Preview/icon.svg`, for a browser to save as `.claude-plugin/icon.png` at 512 px.
+
+```bash
 claude plugin validate .
 ```
 

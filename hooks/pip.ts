@@ -242,3 +242,17 @@ export function diorama({ spot, side, turn, mood }: DioramaOptions): { css: stri
   const css = moodCss(mood) + stripCss(turn, mood) + shades.rules()
   return { css, body }
 }
+
+/** Pip at rest on its asteroid, still, drawn about its feet: for the plugin's icon. */
+export function portrait(): { css: string; body: string } {
+  const shades = new Shades()
+  const rock = asteroid(11)
+  const sin = Math.sin(ASTEROID_YAW)
+  const cos = Math.cos(ASTEROID_YAW)
+  const nearness = (v: Voxel): number => -(v.x + 0.5 - CENTER.x) * sin + (v.z + 0.5 - CENTER.z) * cos
+  const front = rock.filter(v => v.y >= 0 && nearness(v) > 1)
+  const behind = rock.filter(v => !front.includes(v))
+  const at = (yaw: number) => ({ yaw, center: CENTER, origin: [0, 0] as Point, unit: UNIT })
+  const body = render(behind, at(ASTEROID_YAW), shades) + render(pip(false), at(REST_YAW), shades) + render(front, at(ASTEROID_YAW), shades)
+  return { css: shades.rules(), body }
+}

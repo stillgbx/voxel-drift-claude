@@ -1,12 +1,14 @@
 {
   "name": "voxel-drift",
-  "owner": { "name": "stillgbx" },
+  "owner": {
+    "name": "stillgbx"
+  },
   "description": "Voxel Drift, a 3D voxel theme for Claude Desktop.",
   "plugins": [
     {
       "name": "voxel-drift",
       "source": "./",
-      "description": "Voxel Drift for Claude Desktop: violet night and lavender dawn, over Pip, a voxel creature turning on its asteroid among drifting stars."
+      "description": "Voxel Drift for Claude Desktop: violet night and lavender dawn, over 3D voxel scenes where Pip, a small creature, follows Claude among the planets."
     }
   ]
 }
