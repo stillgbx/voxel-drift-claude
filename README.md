@@ -7,7 +7,7 @@ Pip follows Claude. Between turns it rests facing the conversation, blinks, glan
 ## Variants
 
 - **earth**: Pip on a floating asteroid while stars drift past, the Earth in voxels and its Moon in the distance.
-- **solar**: the solar system, the sun on the left and its eight planets on slow tilted orbits across the window, the Moon turning around the Earth, with Pip watching from its corner.
+- **solar**: the solar system, the sun on the left and its eight planets on slow tilted orbits across the window, the main moons turning around their planets (the Moon, Io, Europa, Ganymede, Callisto, Titan, and Triton turning the other way), with Pip watching from its corner.
 
 ![Pip in view of the Earth](Preview/earth.svg)
 

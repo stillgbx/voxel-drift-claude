@@ -1,5 +1,6 @@
 // The solar system: a voxel sun on the left and its eight planets on slow, tilted orbits that
-// sweep across the window, the Moon turning around the Earth.
+// sweep across the window, with their main moons: the Moon, Jupiter's four Galilean moons,
+// Titan and Triton.
 //
 // Each planet is rendered once, in voxels, into <defs>, and an orbit is CSS alone: a group
 // squashed into an ellipse turns, carrying the planet out at its radius, and an inner group
@@ -24,9 +25,19 @@ type Planet = {
   orbit: number
   period: number
   paint: (x: number, y: number, z: number) => MaterialId
-  /** Extra voxels, such as Saturn's ring. */
+  /** Extra voxels, such as Saturn's ring, and how far out they reach, in voxels. */
   extra?: () => Voxel[]
+  reach?: number
+  /** Its main moons, innermost first. */
+  moons?: Moon[]
 }
+
+/**
+ * A moon: a small cube of voxels (a ball under 1.66 voxels across is eight of them), sized by
+ * its pixels per voxel, on an orbit around its planet. Each takes a material a planet already
+ * uses, which adds no colors to the style. Triton turns the other way round, as it does.
+ */
+type Moon = { id: string; m: MaterialId; unit: number; orbit: number; period: number; retrograde?: boolean }
 
 /** Land on the Earth: a few overlapping waves, so continents read at a glance. */
 const land = (x: number, y: number, z: number): number =>
@@ -65,6 +76,7 @@ const PLANETS: Planet[] = [
     orbit: 200,
     period: 96,
     paint: earthPaint(2.8),
+    moons: [{ id: 'moon', m: 'mo', unit: 5, orbit: 24, period: 14 }],
   },
   { id: 'mars', r: 2, unit: 5, orbit: 265, period: 150, paint: (x, y, z) => (y > 1.4 ? 'ic' : 'ma') },
   {
@@ -74,13 +86,36 @@ const PLANETS: Planet[] = [
     orbit: 390,
     period: 290,
     paint: (x, y, z) => (Math.abs(y + 1.5) < 0.8 && x > 0.5 && x < 2.6 && z > 2 ? 'js' : Math.floor(y * 0.9 + 10) % 2 === 0 ? 'ja' : 'jb'),
+    // The four Galilean moons: Io, Europa, Ganymede, Callisto.
+    moons: [
+      { id: 'io', m: 've', unit: 3.4, orbit: 34, period: 9 },
+      { id: 'europa', m: 'ic', unit: 3, orbit: 43, period: 13 },
+      { id: 'ganymede', m: 'me', unit: 4.4, orbit: 54, period: 19 },
+      { id: 'callisto', m: 'mo', unit: 4, orbit: 66, period: 27 },
+    ],
   },
-  { id: 'saturn', r: 4.2, unit: 4.6, orbit: 540, period: 450, paint: () => 'sa', extra: () => ring(5.6, 8) },
+  {
+    id: 'saturn',
+    r: 4.2,
+    unit: 4.6,
+    orbit: 540,
+    period: 450,
+    paint: () => 'sa',
+    extra: () => ring(5.6, 8),
+    reach: 8,
+    moons: [{ id: 'titan', m: 'ja', unit: 4.4, orbit: 50, period: 21 }],
+  },
   { id: 'uranus', r: 3.2, unit: 4.6, orbit: 700, period: 660, paint: () => 'ur' },
-  { id: 'neptune', r: 3.1, unit: 4.6, orbit: 860, period: 880, paint: () => 'ne' },
+  {
+    id: 'neptune',
+    r: 3.1,
+    unit: 4.6,
+    orbit: 860,
+    period: 880,
+    paint: () => 'ne',
+    moons: [{ id: 'triton', m: 'ic', unit: 3.4, orbit: 25, period: 15, retrograde: true }],
+  },
 ]
-
-const MOON = { r: 1.1, unit: 5, orbit: 24, period: 14 }
 
 const at0 = { x: 0, y: 0, z: 0 }
 
@@ -125,10 +160,9 @@ export function solarSystem(): { defs: string; css: string; body: string } {
   defs +=
     `<radialGradient id="corona"><stop class="co-a" offset=".25"/><stop class="co-b" offset="1"/></radialGradient>` +
     `<g id="sun">${draw(sun, SUN.unit, shades)}</g>` +
-    // The upper halves the planets and the Moon pass behind, in the space of the copy drawn
-    // over them (a `<use>` with `x` and `y` moves its clip with it).
-    `<clipPath id="sun-top"><rect x="-80" y="-80" width="160" height="80"/></clipPath>` +
-    `<clipPath id="planet-top"><rect x="-30" y="-30" width="60" height="30"/></clipPath>`
+    // The upper half the planets pass behind, in the space of the copy drawn over them (a
+    // `<use>` with `x` and `y` moves its clip with it).
+    `<clipPath id="sun-top"><rect x="-80" y="-80" width="160" height="80"/></clipPath>`
 
   // The planets, outermost first: further out is further back on the far half of an orbit.
   let orbits = ''
@@ -139,11 +173,17 @@ export function solarSystem(): { defs: string; css: string; body: string } {
     orbits += `<ellipse cx="${SUN.x}" cy="${SUN.y}" rx="${planet.orbit}" ry="${+(planet.orbit * TILT).toFixed(1)}"/>`
 
     let content = `<use href="#${planet.id}"/>`
-    if (planet.id === 'earth') {
-      defs += `<g id="moon">${draw(ball(MOON.r, () => 'mo'), MOON.unit, shades)}</g>`
-      const moon = orbit('<use href="#moon"/>', MOON.orbit, MOON.period, 0.2, 'moon')
-      css += moon.css
-      content += moon.body + `<use href="#earth" clip-path="url(#planet-top)"/>`
+    if (planet.moons !== undefined) {
+      // The moons turn around the planet and pass behind its upper half, drawn again over them.
+      planet.moons.forEach((moon, k) => {
+        defs += `<g id="${moon.id}">${draw(ball(1.1, () => moon.m), moon.unit, shades)}</g>`
+        const turn = orbit(`<use href="#${moon.id}"/>`, moon.orbit, moon.period, (0.2 + k * 0.37) % 1, moon.id)
+        css += turn.css + (moon.retrograde === true ? `.o-${moon.id},.c-${moon.id}{animation-direction:reverse}` : '')
+        content += turn.body
+      })
+      const half = Math.ceil((planet.reach ?? planet.r) * planet.unit) + 3
+      defs += `<clipPath id="top-${planet.id}"><rect x="${-half}" y="${-half}" width="${2 * half}" height="${half}"/></clipPath>`
+      content += `<use href="#${planet.id}" clip-path="url(#top-${planet.id})"/>`
     }
     const turn = orbit(content, planet.orbit, planet.period, rnd(), planet.id)
     css += turn.css
