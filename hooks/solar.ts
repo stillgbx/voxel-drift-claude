@@ -9,7 +9,7 @@
 // orbit (above the sun's middle) a planet goes under it, on the near half over it.
 
 import { at } from './sky'
-import { ball, random, render, Shades, type MaterialId, type Voxel } from './voxel'
+import { ball, MATERIALS, random, render, Shades, type MaterialId, type Voxel } from './voxel'
 
 /** The sun, in the strip on the left that stays clear whether the app's sidebar shows or not. */
 const SUN = { x: 360, y: 470, r: 6.5, unit: 7.5 }
@@ -151,14 +151,32 @@ export function solarSystem(): { defs: string; css: string; body: string } {
   let css =
     ORBIT_KEYFRAMES +
     '.orbits ellipse{fill:none;stroke:var(--orbit);stroke-width:1.2}' +
-    '.co-a{stop-color:var(--corona);stop-opacity:.55}.co-b{stop-color:var(--corona);stop-opacity:0}' +
-    `.sun{animation:breathe 7s ease-in-out infinite alternate;${at(0)};transform-box:fill-box;transform-origin:center}` +
-    '@keyframes breathe{to{transform:scale(1.08);opacity:.8}}'
+    // The glow, as Pip's asteroid has: bright along the sun's outline, in two soft shadows of
+    // light, then a wide, faint halo fading out with no edge, breathing slowly.
+    '.vd{--glow-near:light-dark(#ffb04a8c,#ffae4aa0);--glow-far:light-dark(#ffb04a3a,#ff9d3d4d)}' +
+    '.sunlit{filter:drop-shadow(0 0 5px var(--glow-near)) drop-shadow(0 0 22px var(--glow-far))}' +
+    '.co-a{stop-color:var(--corona);stop-opacity:.22}.co-m{stop-color:var(--corona);stop-opacity:.09}.co-b{stop-color:var(--corona);stop-opacity:0}' +
+    `.sun{animation:breathe 11s ease-in-out infinite alternate;${at(0)};transform-box:fill-box;transform-origin:center}` +
+    '@keyframes breathe{to{transform:scale(1.04);opacity:.85}}'
 
-  // The sun: a glowing ball with a few hotter flares.
-  const sun = ball(SUN.r, (x, y, z) => (Math.sin(x * 2.1) + Math.sin(y * 1.7 + z) > 1.2 ? 'sf' : 'su'))
+  // The sun: a glowing ball with three sets of flares, each fading into the surface and back
+  // in turn, so its face seems to boil. Only colors move: the shape is drawn once.
+  const sun = ball(SUN.r, (x, y, z) =>
+    Math.sin(x * 2.1) + Math.sin(y * 1.7 + z) > 1.2
+      ? 'sf'
+      : Math.sin(z * 1.9 + y * 0.8) + Math.sin(x * 1.3 - y * 1.1 + 2) > 1.25
+        ? 'sg'
+        : Math.sin(y * 2.3 - z * 0.9 + 1) + Math.sin(x * 1.6 + z * 1.4 + 4) > 1.25
+          ? 'sh'
+          : 'su',
+  )
+  const flares = (m: string): string => Array.from({ length: 10 }, (_, k) => `.${m}${k}`).join(',')
+  css +=
+    `.vd{--sun:light-dark(${MATERIALS.su.light},${MATERIALS.su.dark})}` +
+    '@keyframes boil{50%{fill:var(--sun);stroke:var(--sun)}}' +
+    ['sf', 'sg', 'sh'].map((m, k) => `${flares(m)}{animation:boil 4.5s ease-in-out infinite;${at(-k * 1.5)}}`).join('')
   defs +=
-    `<radialGradient id="corona"><stop class="co-a" offset=".25"/><stop class="co-b" offset="1"/></radialGradient>` +
+    `<radialGradient id="corona"><stop class="co-a" offset="0"/><stop class="co-m" offset=".4"/><stop class="co-b" offset="1"/></radialGradient>` +
     `<g id="sun">${draw(sun, SUN.unit, shades)}</g>` +
     // The upper half the planets pass behind, in the space of the copy drawn over them (a
     // `<use>` with `x` and `y` moves its clip with it).
@@ -192,8 +210,8 @@ export function solarSystem(): { defs: string; css: string; body: string } {
 
   const body =
     `<g class="orbits">${orbits}</g>` +
-    `<circle class="sun" cx="${SUN.x}" cy="${SUN.y}" r="130" fill="url(#corona)"/>` +
-    `<g class="vox"><use href="#sun" x="${SUN.x}" y="${SUN.y}"/>` +
+    `<circle class="sun" cx="${SUN.x}" cy="${SUN.y}" r="175" fill="url(#corona)"/>` +
+    `<g class="vox"><use href="#sun" class="sunlit" x="${SUN.x}" y="${SUN.y}"/>` +
     `<g transform="translate(${SUN.x} ${SUN.y})">${planets}</g>` +
     `<use href="#sun" x="${SUN.x}" y="${SUN.y}" clip-path="url(#sun-top)"/></g>`
 

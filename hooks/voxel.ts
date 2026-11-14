@@ -26,8 +26,10 @@ export const MATERIALS = {
   r: { light: '#a197c4', dark: '#4b4570' }, // rock
   c: { light: '#43c2b0', dark: '#62eed6', glow: true }, // crystals
   // The solar system.
-  su: { light: '#ffb347', dark: '#ffbe5c', glow: true }, // sun
-  sf: { light: '#ff8a3d', dark: '#ff9a4a', glow: true }, // sun flares
+  su: { light: '#efa445', dark: '#eaa752', glow: true }, // sun, warm rather than glaring
+  sf: { light: '#ec7f3a', dark: '#ea8844', glow: true }, // sun flares, three sets that boil in turn
+  sg: { light: '#f0c565', dark: '#ecc96e', glow: true },
+  sh: { light: '#e66a38', dark: '#e6703e', glow: true },
   me: { light: '#a39a94', dark: '#8f8780' }, // mercury
   ve: { light: '#e8c48a', dark: '#d9b277' }, // venus
   oc: { light: '#3f7fd1', dark: '#3a78cc' }, // ocean

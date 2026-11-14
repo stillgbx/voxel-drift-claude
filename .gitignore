@@ -1,6 +1,6 @@
 .claude-plugin/types/
 node_modules/
 .claude/
-Preview/index.html
-Preview/frames.html
-Preview/*-left.svg
+# What scripts/preview.ts writes: the captures in Preview are the only files kept there.
+Preview/*.svg
+Preview/*.html
