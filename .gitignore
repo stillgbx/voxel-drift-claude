@@ -3,3 +3,4 @@ node_modules/
 .claude/
 Preview/index.html
 Preview/frames.html
+Preview/*-left.svg
