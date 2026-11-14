@@ -54,7 +54,11 @@ export const VARIANTS = {
   solar: {
     summary: 'the solar system turning, with Pip watching',
     alt: 'A voxel solar system: the sun on the left and eight planets on slow tilted orbits, with Pip on an asteroid in the corner',
-    build: (mood: Mood, side: Side) => scene([solarSystem(), diorama({ spot: PIP_SPOT[side], side, turn: 24, mood })], { stars: 120 }),
+    build: (mood: Mood, side: Side) => scene([solarSystem(), diorama({ spot: PIP_SPOT[side], side, turn: 24, mood })], {
+        stars: 120,
+        // Streaming out of the open sky past the outer planets, clear of the sun.
+        drift: { x: 980, y: 330, count: 44 },
+      }),
   },
 } satisfies Record<string, { summary: string; alt: string; build: (mood: Mood, side: Side) => string }>
 

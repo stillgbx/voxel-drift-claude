@@ -93,7 +93,7 @@ function stars(count: number, drift: { x: number; y: number; count: number } | u
   for (let i = 0; i < drift.count; i++) {
     const angle = Math.round(rnd() * 360)
     const from = Math.round(20 + rnd() * 90)
-    const r = (0.7 + rnd() * 0.9).toFixed(1)
+    const r = (0.9 + rnd() * 1.1).toFixed(1)
     stream += `<g transform="rotate(${angle} ${drift.x} ${drift.y})"><circle class="w v${i % 3} d${i % 12}" cx="${drift.x + from}" cy="${drift.y}" r="${r}"/></g>`
   }
   return `<g class="field">${field}</g><g class="drift">${stream}</g>`
