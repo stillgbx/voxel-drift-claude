@@ -38,6 +38,8 @@ const USAGE = `/drift ${VARIANT_IDS.join(' | ')} | left | right | scene | still 
 // as stored: the backdrop's drawing reads both.
 let mood: Mood = 'idle'
 let side: Side = 'right'
+/** When Pip's mood began: its routine and its hop carry on from there when drawn again. */
+let began = Date.now()
 let settle: { cancel: () => void } | undefined
 
 async function apply($: EngineInterface): Promise<string> {
@@ -65,6 +67,7 @@ async function apply($: EngineInterface): Promise<string> {
 function feel($: EngineInterface, next: Mood): void {
   if (mood === next) return
   mood = next
+  began = Date.now()
   $.ui.invalidate('ui.render')
 }
 
@@ -122,8 +125,9 @@ export const register: Register = on => {
 
     // The backdrop takes no pointer, so the drawing is all there is: no Button, no hover. Nor
     // does it learn which panels are open (its viewport stays the same), hence the side to pick.
-    // Stamped with the time, so what loops carries on from where it was when it's redrawn.
+    // Stamped with the time, so what loops carries on from where it was when it's redrawn,
+    // and with when the mood began, so Pip's routine does too.
     const { Svg } = $.ui.resolve(e)
-    return <Svg source={stamp(svgOf(variant, mood, side), Date.now())} alt={VARIANTS[variant].alt} isInteractive />
+    return <Svg source={stamp(svgOf(variant, mood, side), Date.now(), began)} alt={VARIANTS[variant].alt} isInteractive />
   })
 }

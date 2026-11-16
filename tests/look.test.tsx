@@ -48,6 +48,8 @@ test('every variant draws on desktop and mobile, within the size a backdrop hold
       const ui = await $.ui.mount({ ...backdrop(scene), surface })
       const source = String((await ui.find({ type: 'Svg' }))?.props.source)
       expect(source.startsWith('<svg')).toBe(true)
+      // The style is text in the SVG: a `<` in it would open a tag and cut it short.
+      expect(source.slice(source.indexOf('<style>') + 7, source.indexOf('</style>'))).not.toContain('<')
       expect(source.length).toBeLessThan(131072)
       // Every delay is written out as a number, stamped with the time it's drawn.
       expect(source).not.toContain('{{')

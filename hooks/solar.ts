@@ -160,7 +160,11 @@ export function solarSystem(): { defs: string; css: string; body: string } {
     '@keyframes breathe{to{transform:scale(1.04);opacity:.85}}'
 
   // The sun: a glowing ball with three sets of flares, each fading into the surface and back
-  // in turn, so its face seems to boil. Only colors move: the shape is drawn once.
+  // in turn, so its face seems to boil. Only colors move: the shape is drawn once. The faces
+  // sit in the drawing both copies of the sun `<use>`, so each change of color restyles both
+  // copies: the color moves in small steps, a few a second, rather than every frame. (The app
+  // takes no `@property`: a number animated on the copies instead left the flares black and
+  // the whole scene still.)
   const sun = ball(SUN.r, (x, y, z) =>
     Math.sin(x * 2.1) + Math.sin(y * 1.7 + z) > 1.2
       ? 'sf'
@@ -174,7 +178,8 @@ export function solarSystem(): { defs: string; css: string; body: string } {
   css +=
     `.vd{--sun:light-dark(${MATERIALS.su.light},${MATERIALS.su.dark})}` +
     '@keyframes boil{50%{fill:var(--sun);stroke:var(--sun)}}' +
-    ['sf', 'sg', 'sh'].map((m, k) => `${flares(m)}{animation:boil 4.5s ease-in-out infinite;${at(-k * 1.5)}}`).join('')
+    // Twelve steps each way: a change every 0.19 s, too fine to see as a step.
+    ['sf', 'sg', 'sh'].map((m, k) => `${flares(m)}{animation:boil 4.5s steps(12) infinite;${at(-k * 1.5)}}`).join('')
   defs +=
     `<radialGradient id="corona"><stop class="co-a" offset="0"/><stop class="co-m" offset=".4"/><stop class="co-b" offset="1"/></radialGradient>` +
     `<g id="sun">${draw(sun, SUN.unit, shades)}</g>` +

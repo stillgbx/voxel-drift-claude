@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.2
+
+* The scenes no longer freeze, planets in a line, while Claude works or the conversation scrolls: they cost about half as much to draw. The stars twinkle in four groups rather than one by one, and the sun's flares change color in fine steps, a few a second.
+* The scene and Pip drift slowly up and down, each at its own pace over a few minutes, so nothing stays long on the same pixels of the screen. With Pip on the left of the solar system, Pip rises and falls with the sun.
+* Pip's routine carries on where it was when the scene is drawn again, rather than starting over.
+
 ## 0.1.1
 
 * The plugin has an icon: Pip at rest on its asteroid in the night sky, the Earth in the distance, square at 512 px.

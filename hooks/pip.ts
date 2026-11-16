@@ -5,7 +5,7 @@
 // blinks, glances around and sometimes does a full turn; while Claude works it scans about,
 // its antennae pulsing; when the answer is in it hops and turns, pleased.
 
-import { at } from './sky'
+import { at, since } from './sky'
 import { Grid, random, render, Shades, type Point, type Voxel } from './voxel'
 
 /** Where Pip turns, in voxel units: the middle of its body. */
@@ -165,7 +165,7 @@ function stripCss(turn: number, mood: Mood): string {
     return key
   })
   frames.push('100%{transform:translateX(0)}')
-  return `.strip{animation:pip ${seconds.toFixed(2)}s infinite step-end}@keyframes pip{${frames.join('')}}`
+  return `.strip{animation:pip ${seconds.toFixed(2)}s infinite step-end;${since(0)}}@keyframes pip{${frames.join('')}}`
 }
 
 /**
@@ -184,7 +184,7 @@ function moodCss(mood: Mood): string {
       bob +
       // Anchored at Pip's feet, (0, 0) in the diorama: a box-relative origin would take the
       // whole strip of frames, most of it clipped away, and swing Pip sideways.
-      '.hopper{transform-box:view-box;transform-origin:0 0;animation:hop 1.5s .15s both}' +
+      '.hopper{transform-box:view-box;transform-origin:0 0;animation:hop 1.5s both;' + since(0.15) + '}' +
       '@keyframes hop{' +
       '0%,50%,100%{transform:none;animation-timing-function:ease-out}' +
       '6%,56%{transform:scale(1.06,.9);animation-timing-function:ease-out}' +

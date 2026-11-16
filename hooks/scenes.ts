@@ -2,7 +2,7 @@
 // stands on, built the first time it's drawn.
 
 import { diorama, type Mood, type Side } from './pip'
-import { scene } from './sky'
+import { at, scene, type Layer } from './sky'
 import { draw, earthPaint, orbit, ORBIT_KEYFRAMES, solarSystem } from './solar'
 import { ball, Shades } from './voxel'
 
@@ -44,17 +44,60 @@ function voxelEarth(): { css: string; defs: string; body: string } {
   }
 }
 
+/**
+ * Moves a layer down `by` pixels and back (up, when negative), over `seconds` each way, so
+ * nothing stays for long on the same pixels of the screen. On the scene's clock, from `phase`
+ * seconds in, so a redraw finds it where it was.
+ */
+function sway<L extends Layer>(layer: L, id: string, by: number, seconds: number, phase: number): L {
+  return {
+    ...layer,
+    css:
+      (layer.css ?? '') +
+      `.sway-${id}{animation:sway-${id} ${seconds}s ease-in-out infinite alternate;${at(-phase)}}` +
+      `@keyframes sway-${id}{to{transform:translateY(${by}px)}}`,
+    body: `<g class="sway-${id}">${layer.body}</g>`,
+  }
+}
+
+/**
+ * How far each part of a scene drifts, in pixels: the sky's subject (the Earth, or the solar
+ * system) and Pip, about twice their height. On the left, Pip stands under the subject: under
+ * the Earth they part and meet within the room between them; under the sun there's too little
+ * room, so Pip rises and falls with it (`together`).
+ */
+const SWAY: Record<'earth' | 'solar', Record<Side, { sky: number; pip: number; together?: boolean }>> = {
+  earth: { right: { sky: 220, pip: -260 }, left: { sky: 200, pip: -120 } },
+  solar: { right: { sky: -150, pip: -260 }, left: { sky: -150, pip: -150, together: true } },
+}
+
+/** The sky's pace, and Pip's: a few minutes each way, so the two parts rarely move as one. */
+const SKY_PACE = { seconds: 240, phase: 40 }
+const PIP_PACE = { seconds: 310, phase: 170 }
+
+const swaySky = <L extends Layer>(layer: L, variant: 'earth' | 'solar', side: Side): L =>
+  sway(layer, 'sky', SWAY[variant][side].sky, SKY_PACE.seconds, SKY_PACE.phase)
+const swayPip = <L extends Layer>(layer: L, variant: 'earth' | 'solar', side: Side): L => {
+  const { pip, together } = SWAY[variant][side]
+  const pace = together === true ? SKY_PACE : PIP_PACE
+  return sway(layer, 'pip', pip, pace.seconds, pace.phase)
+}
+
 export const VARIANTS = {
   earth: {
     summary: 'Pip on its asteroid among drifting stars, the Earth in view',
     alt: 'Pip, a small coral voxel creature with glowing antennae, standing on a floating asteroid among drifting stars, the Earth and its Moon in the distance',
     build: (mood: Mood, side: Side) =>
-      scene([voxelEarth(), diorama({ spot: PIP_SPOT[side], side, turn: 32, mood })], { drift: { x: 560, y: 330, count: 56 } }),
+      scene(
+        [swaySky(voxelEarth(), 'earth', side), swayPip(diorama({ spot: PIP_SPOT[side], side, turn: 32, mood }), 'earth', side)],
+        { drift: { x: 560, y: 330, count: 56 } },
+      ),
   },
   solar: {
     summary: 'the solar system turning, with Pip watching',
     alt: 'A voxel solar system: the sun on the left and eight planets on slow tilted orbits, with Pip on an asteroid in the corner',
-    build: (mood: Mood, side: Side) => scene([solarSystem(), diorama({ spot: PIP_SPOT[side], side, turn: 24, mood })], {
+    build: (mood: Mood, side: Side) =>
+      scene([swaySky(solarSystem(), 'solar', side), swayPip(diorama({ spot: PIP_SPOT[side], side, turn: 24, mood }), 'solar', side)], {
         stars: 120,
         // Streaming out of the open sky past the outer planets, clear of the sun.
         drift: { x: 980, y: 330, count: 44 },

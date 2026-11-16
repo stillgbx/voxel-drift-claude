@@ -20,10 +20,20 @@ export const H = 1000
  */
 export const at = (seconds: number): string => `animation-delay:{{${+seconds.toFixed(2)}}}s`
 
-/** Writes each delay `at` marked as a plain number, the scene's clock at a time in milliseconds. */
-export const stamp = (svg: string, ms: number): string => {
+/**
+ * An animation delay counted from when what's drawn began (Pip's mood), for what plays on an
+ * event: Pip's routine, its hop. Drawn again a moment later, it carries on and doesn't start over.
+ */
+export const since = (seconds: number): string => `animation-delay:{{@${+seconds.toFixed(2)}}}s`
+
+/**
+ * Writes each delay `at` and `since` marked as a plain number: the scene's clock at a time in
+ * milliseconds, and how long ago what's drawn `began` (now, left out).
+ */
+export const stamp = (svg: string, ms: number, began = ms): string => {
   const now = (ms / 1000) % 1e6
-  return svg.replace(/\{\{(-?[\d.]+)\}\}/g, (_, delay: string) => (Number(delay) - now).toFixed(3))
+  const ago = (ms - began) / 1000
+  return svg.replace(/\{\{(@?)(-?[\d.]+)\}\}/g, (_, event: string, delay: string) => (Number(delay) - (event === '@' ? ago : now)).toFixed(3))
 }
 
 const VARS: [string, string, string][] = [
@@ -76,16 +86,21 @@ function sky(): { defs: string; body: string } {
   }
 }
 
-/** A still field of stars that twinkle, and, with `drift`, a slow stream out of the distance. */
+/**
+ * A still field of stars that twinkle, and, with `drift`, a slow stream out of the distance.
+ * The stars twinkle in four sets, each a group that twinkles whole: one animation a set
+ * rather than one a star, which cost the browser a restyle of every star every frame.
+ */
 function stars(count: number, drift: { x: number; y: number; count: number } | undefined): string {
   const rnd = random(5)
-  let field = ''
+  const sets = ['', '', '', '']
   for (let i = 0; i < count; i++) {
     const x = Math.round(rnd() * W)
     const y = Math.round(rnd() * H)
     const r = (0.5 + rnd() * rnd() * 1.6).toFixed(1)
-    field += `<circle class="t${i % 4}" cx="${x}" cy="${y}" r="${r}"/>`
+    sets[i % 4] += `<circle cx="${x}" cy="${y}" r="${r}"/>`
   }
+  const field = sets.map((set, k) => `<g class="t${k}">${set}</g>`).join('')
   if (drift === undefined) return `<g class="field">${field}</g>`
 
   // Each drifting star is turned toward its heading and flies out along x.
